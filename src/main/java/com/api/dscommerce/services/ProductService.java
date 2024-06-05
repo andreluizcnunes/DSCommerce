@@ -3,10 +3,15 @@ package com.api.dscommerce.services;
 import com.api.dscommerce.dto.ProductDTO;
 import com.api.dscommerce.entities.Product;
 import com.api.dscommerce.repositories.ProductRepository;
+import com.api.dscommerce.services.exceptions.DatabaseException;
+import com.api.dscommerce.services.exceptions.ResourceNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -19,7 +24,9 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDTO getProductById(Long id) {
-        Optional<Product> result = productRepository.findById(id);
+        Optional<Product> result = Optional.ofNullable(productRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Recurso nao encotrado")
+        ));
         Product product = result.get();
         ProductDTO productDTO = new ProductDTO(
                 product.getId(),
@@ -48,15 +55,26 @@ public class ProductService {
 
     @Transactional
     public ProductDTO updateProduct(Long id, ProductDTO productDTO) {
-        Product product = productRepository.getReferenceById(id);
-        copyDtoToEntity(productDTO, product);
-        product = productRepository.save(product);
-        return new ProductDTO(product);
+        try {
+            Product product = productRepository.getReferenceById(id);
+            copyDtoToEntity(productDTO, product);
+            product = productRepository.save(product);
+            return new ProductDTO(product);
+        }catch (EntityNotFoundException e){
+            throw new ResourceNotFoundException("Recurso nao encotrado");
+        }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        if(!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Recurso nao encotrado");
+        }
+        try {
+            productRepository.deleteById(id);
+        }catch (DataIntegrityViolationException e){
+            throw new DatabaseException("Falha de integridade referencial");
+        }
     }
 
 
