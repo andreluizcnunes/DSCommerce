@@ -40,8 +40,8 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> getAllProducts(Pageable pageable) {
-        Page<Product> result = productRepository.findAll(pageable);
+    public Page<ProductDTO> getAllProducts(String name, Pageable pageable) {
+        Page<Product> result = productRepository.searchByName(name, pageable);
         return result.map(x -> new ProductDTO(x));
     }
 
