@@ -1,7 +1,9 @@
 package com.api.dscommerce.services;
 
+import com.api.dscommerce.dto.CategoryDTO;
 import com.api.dscommerce.dto.ProductDTO;
 import com.api.dscommerce.dto.ProductMinDTO;
+import com.api.dscommerce.entities.Category;
 import com.api.dscommerce.entities.Product;
 import com.api.dscommerce.repositories.ProductRepository;
 import com.api.dscommerce.services.exceptions.DatabaseException;
@@ -29,13 +31,7 @@ public class ProductService {
                 () -> new ResourceNotFoundException("Recurso nao encotrado")
         ));
         Product product = result.get();
-        ProductDTO productDTO = new ProductDTO(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getImgUrl()
-        );
+        ProductDTO productDTO = new ProductDTO(product);
 
         return productDTO;
     }
@@ -84,6 +80,17 @@ public class ProductService {
         product.setDescription(productDTO.getDescription());
         product.setPrice(productDTO.getPrice());
         product.setImgUrl(productDTO.getImgUrl());
+
+        product.getCategories().clear();
+
+        for (CategoryDTO categoryDTO : productDTO.getCategories()) {
+            Category category = new Category();
+
+            category.setId(categoryDTO.getId());
+            category.setName(categoryDTO.getName());
+
+            product.getCategories().add(category);
+        }
     }
 
 
