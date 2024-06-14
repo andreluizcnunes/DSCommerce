@@ -24,13 +24,13 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping(value = "/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLIENT')")
     public ResponseEntity<OrderDTO> getProductById(@PathVariable Long id) {
         OrderDTO dto = orderService.getOrderById(id);
         return ResponseEntity.ok(dto);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_CLIENT')")
+    @PreAuthorize("hasAnyRole('ROLE_CLIENT')")
     @PostMapping
     public ResponseEntity<OrderDTO> createProduct(@Valid @RequestBody OrderDTO orderDTO) {
         orderDTO = orderService.createOrder(orderDTO);

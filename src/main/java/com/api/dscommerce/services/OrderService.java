@@ -33,15 +33,18 @@ public class OrderService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuthService authService;
+
     @Transactional(readOnly = true)
     public OrderDTO getOrderById(Long id) {
-        Optional<Order> result = Optional.ofNullable(orderRepository.findById(id).orElseThrow(
+        Order order = orderRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Recurso nao encotrado")
-        ));
-        Order order = result.get();
-        OrderDTO orderDTO = new OrderDTO(order);
+        );
 
-        return orderDTO;
+        authService.validateSelOrAdmin(order.getClient().getId());
+
+        return  new OrderDTO(order);
     }
 
     @Transactional
